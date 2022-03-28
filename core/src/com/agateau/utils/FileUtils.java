@@ -85,6 +85,16 @@ public class FileUtils {
         return root;
     }
 
+    public static XmlReader.Element parseXml(String xml) {
+        XmlReader reader = new XmlReader();
+        XmlReader.Element root = reader.parse(xml);
+        if (root == null) {
+            NLog.e("Failed to parse xml. No root element.");
+            return null;
+        }
+        return root;
+    }
+
     public static String readUtf8(final InputStream in) throws IOException {
         InputStreamReader reader = new InputStreamReader(in, StandardCharsets.UTF_8);
         StringBuilder sb = new StringBuilder();

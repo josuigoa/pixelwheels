@@ -24,8 +24,16 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 /** Definition of a vehicle axle */
 public class AxleDef {
     public enum TireSize {
-        NORMAL,
-        LARGE
+        NORMAL(13, 10),
+        LARGE(19, 15);
+
+        public final int diameter;
+        public final int thickness;
+
+        TireSize(int diameter, int thickness) {
+            this.diameter = diameter;
+            this.thickness = thickness;
+        }
     }
 
     public float width;

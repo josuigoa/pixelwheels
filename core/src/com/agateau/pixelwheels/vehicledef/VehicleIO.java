@@ -22,7 +22,8 @@ import com.agateau.utils.FileUtils;
 import com.agateau.utils.log.NLog;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.math.Polygon;
-import com.badlogic.gdx.math.Shape2D;
+import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.XmlReader;
 
 /**
@@ -51,24 +52,27 @@ public class VehicleIO {
     }
 
     public static VehicleDef get(XmlReader.Element root, String id) {
-        VehicleDef data = new VehicleDef(id, root.getAttribute("name"));
-        data.speed = root.getFloatAttribute("speed");
+        VehicleDef vehicleDef = new VehicleDef(id, root.getAttribute("name"));
+        vehicleDef.speed = root.getFloatAttribute("speed");
 
         float width = root.getFloatAttribute("height");
         float height = root.getFloatAttribute("width");
 
         XmlReader.Element mainElement = root.getChildByName("main");
-        data.mainImage = mainElement.getAttribute("image");
+        vehicleDef.mainImage = mainElement.getAttribute("image");
 
         XmlReader.Element shapesElement = root.getChildByName("shapes");
         for (int i = 0, n = shapesElement.getChildCount(); i < n; ++i) {
             XmlReader.Element element = shapesElement.getChild(i);
-            data.shapes.add(loadShape(element, width, height));
+            Polygon shape = loadShape(element, width, height);
+            vehicleDef.shapes.add(shape);
+            updateBoundingRect(vehicleDef.boundingRect, shape);
         }
-        if (data.shapes.size == 0) {
+        if (vehicleDef.shapes.size == 0) {
             throw new RuntimeException("No shapes defined in vehicle " + id);
         }
 
+        float vehicleBottomX = -width / 2;
         for (XmlReader.Element element : root.getChildrenByName("axle")) {
             AxleDef axle = new AxleDef();
             axle.width = element.getFloatAttribute("width");
@@ -77,12 +81,41 @@ public class VehicleIO {
             axle.drive = element.getFloatAttribute("drive", 1);
             axle.drift = element.getBooleanAttribute("drift", true);
             axle.tireSize = AxleDef.TireSize.valueOf(element.getAttribute("tireSize", "NORMAL"));
-            data.axles.add(axle);
+            vehicleDef.axles.add(axle);
+            updateBoundingRect(vehicleDef.boundingRect, vehicleBottomX, axle);
         }
-        return data;
+        return vehicleDef;
     }
 
-    private static Shape2D loadShape(
+    // Make sure boundingRect contains polygon
+    private static void updateBoundingRect(Rectangle boundingRect, Polygon polygon) {
+        boundingRect.merge(polygon.getBoundingRectangle());
+    }
+
+    // Make sure boundingRect contains axle
+    private static final Rectangle sTmpRect = new Rectangle();
+
+    private static void updateBoundingRect(
+            Rectangle boundingRect, float vehicleBottomX, AxleDef axle) {
+        // Use the length of the tire diagonal as the size of its bounding square
+        float tireMaxSize = Vector2.len(axle.tireSize.diameter, axle.tireSize.thickness);
+
+        // Axle definition is based on a vertical vehicle, but the body is going to be horizontal
+        float centerX = vehicleBottomX + axle.y;
+
+        // Left wheel
+        float centerY = axle.width / 2;
+        sTmpRect.set(
+                centerX - tireMaxSize / 2, centerY - tireMaxSize / 2, tireMaxSize, tireMaxSize);
+        boundingRect.merge(sTmpRect);
+
+        // Right wheel
+        //noinspection SuspiciousNameCombination
+        sTmpRect.y -= axle.width;
+        boundingRect.merge(sTmpRect);
+    }
+
+    private static Polygon loadShape(
             XmlReader.Element element, float vehicleWidth, float vehicleHeight) {
         String type = element.getName();
         if (type.equals("octogon")) {

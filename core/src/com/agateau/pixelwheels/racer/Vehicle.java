@@ -56,6 +56,7 @@ public class Vehicle implements Racer.Component, Disposable {
         public float steeringFactor;
     }
 
+    private final Vector2 mMaxSize = new Vector2();
     private final String mId;
     private final Body mBody;
     private final GameWorld mGameWorld;
@@ -90,6 +91,8 @@ public class Vehicle implements Racer.Component, Disposable {
         mId = vehicleDef.id;
         mGameWorld = gameWorld;
 
+        mMaxSize.set(vehicleDef.boundingRect.width, vehicleDef.boundingRect.height);
+
         // Main
         mBodyAnimation = vehicleDef.getAnimation(textureRegionProvider);
         mBodyAnimation.setPlayMode(Animation.PlayMode.LOOP);
@@ -111,6 +114,10 @@ public class Vehicle implements Racer.Component, Disposable {
             mBody.createFixture(fixtureDef);
             fixtureDef.shape.dispose();
         }
+    }
+
+    public Vector2 getMaxSize() {
+        return mMaxSize;
     }
 
     @Override

@@ -24,6 +24,7 @@ import com.agateau.pixelwheels.TextureRegionProvider;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Shape2D;
 import com.badlogic.gdx.utils.Array;
 
@@ -34,6 +35,7 @@ public class VehicleDef {
     public float speed;
     public Array<AxleDef> axles = new Array<>();
     public Array<Shape2D> shapes = new Array<>();
+    public final Rectangle boundingRect = new Rectangle();
 
     public VehicleDef(String id, String name) {
         this.id = id;

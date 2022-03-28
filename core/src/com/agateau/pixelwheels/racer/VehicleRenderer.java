@@ -25,8 +25,10 @@ import com.agateau.pixelwheels.ZLevel;
 import com.agateau.pixelwheels.utils.BodyRegionDrawer;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
@@ -40,15 +42,23 @@ public class VehicleRenderer implements Renderer {
     private final Array<Renderer> mRenderers = new Array<>();
     private final SkidmarksRenderer mSkidmarksRenderer;
     private float mTime = 0;
+    private final FrameBuffer mFrameBuffer;
     private final BodyRegionDrawer mBodyRegionDrawer = new BodyRegionDrawer();
 
     public VehicleRenderer(Assets assets, Vehicle vehicle) {
         mAssets = assets;
         mVehicle = vehicle;
+        mFrameBuffer = createFrameBuffer(vehicle);
         mSkidmarksRenderer = new SkidmarksRenderer(mAssets);
         // Draw fully opaque shadows: vehicle shadows are drawn to a FrameBuffer. The
         // BodyRegionDrawer.SHADOW_ALPHA is applied when drawing the buffer to the screen.
         mBodyRegionDrawer.setShadowAlpha(1);
+    }
+
+    private static FrameBuffer createFrameBuffer(Vehicle vehicle) {
+        Vector2 size = vehicle.getMaxSize();
+        return new FrameBuffer(
+                Pixmap.Format.RGBA8888, (int) size.x, (int) size.y, false /* hasDepth */);
     }
 
     public void addRenderer(Renderer renderer) {
