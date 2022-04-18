@@ -26,12 +26,14 @@ import com.agateau.pixelwheels.bonus.Bonus;
 import com.agateau.pixelwheels.bonus.BonusPool;
 import com.agateau.pixelwheels.debug.Debug;
 import com.agateau.pixelwheels.gameobjet.AudioClipper;
+import com.agateau.pixelwheels.gameobjet.CellFrameBufferUser;
 import com.agateau.pixelwheels.gameobjet.GameObjectAdapter;
 import com.agateau.pixelwheels.gamesetup.GameInfo;
 import com.agateau.pixelwheels.racescreen.Collidable;
 import com.agateau.pixelwheels.racescreen.CollisionCategories;
 import com.agateau.pixelwheels.sound.AudioManager;
 import com.agateau.pixelwheels.stats.GameStats;
+import com.agateau.ui.CellFrameBufferManager;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
@@ -45,7 +47,8 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 
 /** A racer */
-public class Racer extends GameObjectAdapter implements Collidable, Disposable {
+public class Racer extends GameObjectAdapter
+        implements Collidable, Disposable, CellFrameBufferUser {
     private final GameWorld mGameWorld;
     private final Vehicle mVehicle;
     private final VehicleRenderer mVehicleRenderer;
@@ -62,6 +65,21 @@ public class Racer extends GameObjectAdapter implements Collidable, Disposable {
     // State
     private Bonus mBonus;
     private final RecordRanks mRecordRanks = new RecordRanks();
+
+    @Override
+    public void init(CellFrameBufferManager manager) {
+        mVehicleRenderer.init(manager);
+    }
+
+    @Override
+    public void drawToCell(Batch batch, Rectangle viewBounds) {
+        mVehicleRenderer.drawToCell(batch, viewBounds);
+    }
+
+    @Override
+    public void drawCell(Batch batch, ZLevel z, Rectangle viewBounds) {
+        mVehicleRenderer.drawCell(batch, z, viewBounds);
+    }
 
     public static class RecordRanks {
         public int lapRecordRank = -1;

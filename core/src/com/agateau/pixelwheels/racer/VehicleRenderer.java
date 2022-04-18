@@ -22,9 +22,12 @@ import com.agateau.pixelwheels.Assets;
 import com.agateau.pixelwheels.Constants;
 import com.agateau.pixelwheels.Renderer;
 import com.agateau.pixelwheels.ZLevel;
+import com.agateau.pixelwheels.gameobjet.CellFrameBufferUser;
 import com.agateau.pixelwheels.utils.BodyRegionDrawer;
+import com.agateau.ui.CellFrameBufferManager;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
@@ -34,13 +37,15 @@ import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.utils.Array;
 
 /** Renders a vehicle */
-public class VehicleRenderer implements Renderer {
+public class VehicleRenderer implements Renderer, CellFrameBufferUser {
     private final Assets mAssets;
     private final Vehicle mVehicle;
     private final Array<Renderer> mRenderers = new Array<>();
     private final SkidmarksRenderer mSkidmarksRenderer;
     private float mTime = 0;
     private final BodyRegionDrawer mBodyRegionDrawer = new BodyRegionDrawer();
+    private CellFrameBufferManager mCellFrameBufferManager;
+    private final Vector2 mCellOrigin = new Vector2();
 
     public VehicleRenderer(Assets assets, Vehicle vehicle) {
         mAssets = assets;
@@ -160,5 +165,65 @@ public class VehicleRenderer implements Renderer {
                 1,
                 1, // scale
                 angle - 90);
+    }
+
+    private static final int CELL_SIZE = 200;
+
+    @Override
+    public void init(CellFrameBufferManager manager) {
+        mCellFrameBufferManager = manager;
+        mCellOrigin.set(manager.reserveCell(CELL_SIZE, CELL_SIZE));
+    }
+
+    @Override
+    public void drawToCell(Batch batch, Rectangle viewBounds) {
+        TextureRegion region = mVehicle.getRegion(mTime);
+        Body body = mVehicle.getBody();
+        float angle = body.getAngle() * MathUtils.radiansToDegrees;
+        float w = region.getRegionWidth();
+        float h = region.getRegionHeight();
+        float x = mCellOrigin.x + CELL_SIZE / 2f;
+        float y = mCellOrigin.y + CELL_SIZE / 2f;
+        batch.draw(
+                region,
+                // dst
+                x - w / 2,
+                y - h / 2,
+                // origin
+                w / 2,
+                h / 2,
+                // size
+                w,
+                h,
+                // scale
+                1,
+                1,
+                // angle
+                angle);
+    }
+
+    @Override
+    public void drawCell(Batch batch, ZLevel z, Rectangle viewBounds) {
+        Texture cellTexture = mCellFrameBufferManager.getTexture();
+        TextureRegion region = mVehicle.getRegion(mTime);
+        Body body = mVehicle.getBody();
+        float angle = body.getAngle() * MathUtils.radiansToDegrees;
+        float w = Constants.UNIT_FOR_PIXEL * CELL_SIZE;
+        float h = Constants.UNIT_FOR_PIXEL * CELL_SIZE;
+        float x = mVehicle.getPosition().x;
+        float y = mVehicle.getPosition().y;
+
+        batch.draw(
+                cellTexture,
+                // dst
+                x - w / 2f,
+                y - h / 2f,
+                w,
+                h,
+                // src
+                (int) mCellOrigin.x,
+                (int) mCellOrigin.y,
+                CELL_SIZE,
+                CELL_SIZE);
     }
 }

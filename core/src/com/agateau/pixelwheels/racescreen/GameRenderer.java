@@ -24,12 +24,12 @@ import com.agateau.pixelwheels.GameWorld;
 import com.agateau.pixelwheels.ZLevel;
 import com.agateau.pixelwheels.debug.Debug;
 import com.agateau.pixelwheels.debug.DebugShapeMap;
+import com.agateau.pixelwheels.gameobjet.CellFrameBufferUser;
 import com.agateau.pixelwheels.gameobjet.GameObject;
 import com.agateau.pixelwheels.map.Track;
 import com.agateau.pixelwheels.map.WaypointStore;
 import com.agateau.pixelwheels.utils.BodyRegionDrawer;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.GL20;
+import com.agateau.ui.CellFrameBufferManager;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -65,6 +65,7 @@ public class GameRenderer {
     private int mScreenY;
     private int mScreenWidth;
     private int mScreenHeight;
+    private final CellFrameBufferManager mCellFrameBufferManager = new CellFrameBufferManager();
     private final PerformanceCounter mTilePerformanceCounter;
     private final PerformanceCounter mGameObjectPerformanceCounter;
     private final PerformanceCounter mSetupPerformanceCounter;
@@ -100,6 +101,12 @@ public class GameRenderer {
 
         if (Debug.instance.showDebugLayer) {
             setupWaypointDebugShape();
+        }
+        for (GameObject object : mWorld.getActiveGameObjects()) {
+            if (object instanceof CellFrameBufferUser) {
+                CellFrameBufferUser user = (CellFrameBufferUser) object;
+                user.init(mCellFrameBufferManager);
+            }
         }
     }
 
@@ -154,28 +161,58 @@ public class GameRenderer {
         mTilePerformanceCounter.stop();
 
         mGameObjectPerformanceCounter.start();
+
+        mCellFrameBufferManager.begin(mBatch);
+        for (GameObject object : mWorld.getActiveGameObjects()) {
+            if (object instanceof CellFrameBufferUser) {
+                CellFrameBufferUser user = (CellFrameBufferUser) object;
+                user.drawToCell(mBatch, viewBounds);
+            }
+        }
+        mCellFrameBufferManager.end();
+
         mBatch.begin();
         for (ZLevel z : ZLevel.values()) {
             if (z == ZLevel.VEHICLE_SHADOWS) {
                 mBatch.end();
 
+                /*
                 mVehicleShadowsFrameBuffer.begin();
                 mBatch.begin();
                 Gdx.gl.glClearColor(0, 0, 0, 0);
                 Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+                */
             }
 
+            /*
             for (GameObject object : mWorld.getActiveGameObjects()) {
                 object.draw(mBatch, z, viewBounds);
             }
+             */
 
             if (z == ZLevel.VEHICLE_SHADOWS) {
+                /*
                 mBatch.end();
                 mVehicleShadowsFrameBuffer.end();
+                 */
+
                 mBatch.begin();
+                for (GameObject object : mWorld.getActiveGameObjects()) {
+                    if (object instanceof CellFrameBufferUser) {
+                        CellFrameBufferUser user = (CellFrameBufferUser) object;
+                        user.drawCell(mBatch, z, viewBounds);
+                    }
+                }
+                mBatch.end();
+
+                mBatch.begin();
+                /*
                 drawVehicleShadowsFrameBuffer();
+
+                 */
             }
 
+            /*
             if (z == ZLevel.OBSTACLES && mForegroundLayerIndexes.length > 0) {
                 mGameObjectPerformanceCounter.stop();
                 mTilePerformanceCounter.start();
@@ -187,6 +224,7 @@ public class GameRenderer {
                 mTilePerformanceCounter.stop();
                 mGameObjectPerformanceCounter.start();
             }
+            */
         }
         mBatch.end();
         mGameObjectPerformanceCounter.stop();
