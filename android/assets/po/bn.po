@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-04 16:35+0200\n"
+"POT-Creation-Date: 2022-05-05 08:59+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -442,6 +442,11 @@ msgstr ""
 #: android/assets/vehicles/antonin.xml:1
 msgctxt "vehicle"
 msgid "Ant On-1"
+msgstr ""
+
+#: android/assets/vehicles/bigfoot.xml:1
+msgctxt "vehicle"
+msgid "Big Foot"
 msgstr ""
 
 #: android/assets/vehicles/dark-m.xml:1
